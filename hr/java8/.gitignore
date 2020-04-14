@@ -1,0 +1,4 @@
+settings.gradle
+.idea/
+.gradle/
+out/
