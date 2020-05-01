@@ -12,6 +12,7 @@ public class MaxMin {
 
 	@Test
     public void testOne() {
+		
         final int ten9th = 1000000000;
         System.out.printf("10^9(%s)\n", ten9th);
         System.out.printf("maxInt(%s)\n", Integer.MAX_VALUE);
