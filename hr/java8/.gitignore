@@ -2,3 +2,4 @@ settings.gradle
 .idea/
 .gradle/
 out/
+**/build/
