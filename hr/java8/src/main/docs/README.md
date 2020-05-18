@@ -1,4 +1,4 @@
-Notes
+## Notes
 
 #### Finding Primes
 - For small numbers (e.g., < 10M)
@@ -6,21 +6,21 @@ Notes
   - Trial division
 
 ```
-function is_prime(n)
-    if n ≤ 3 then
-        return n > 1
-    else if n mod 2 = 0 or n mod 3 = 0
-        return false
-
-    let i ← 5
-
-    while i × i ≤ n do
-        if n mod i = 0 or n mod (i + 2) = 0
+    function is_prime(n)
+        if n ≤ 3 then
+            return n > 1
+        else if n mod 2 = 0 or n mod 3 = 0
             return false
-        i ← i + 6
-
-    return true
-```  
+    
+        let i ← 5
+    
+        while i × i ≤ n do
+            if n mod i = 0 or n mod (i + 2) = 0
+                return false
+            i ← i + 6
+    
+        return true
+```
   
 #### Magic Squares
 
@@ -32,3 +32,5 @@ function is_prime(n)
     - Specific algorithm to populate cells
       - Use alternation of “groups” & “clockwise/counterclockwise” fills
     - Magic # is 2 x (first # + last #) -> e.g., (1 + 16) x 2 => 34 for n=4
+
+
