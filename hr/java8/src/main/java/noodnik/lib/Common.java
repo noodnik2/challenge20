@@ -1,5 +1,6 @@
 package noodnik.lib;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
@@ -48,6 +49,10 @@ public class Common {
         return a;
     }
 
+    public static <T> List<T> listOf(T... testDatum) {
+        return Arrays.stream(testDatum).collect(Collectors.toList());
+    }
+
     public static List<Integer> listOf(int... testDatum) {
         return Arrays.stream(testDatum).boxed().collect(Collectors.toList());
     }
@@ -55,7 +60,23 @@ public class Common {
     public static List<Long> listOf(long... testDatum) {
         return Arrays.stream(testDatum).boxed().collect(Collectors.toList());
     }
-
+    
+    public static int[][] intArrayListToPrimitive(List<int[]> listOfIntArray) {
+        int[][] iaa = new int[listOfIntArray.size()][];
+        for (int i = 0; i < iaa.length; i++) {
+            iaa[i] = listOfIntArray.get(i);
+        }
+        return iaa;
+    }
+    
+    public static List<List<Integer>> intArrayArrayToLists(int[][] intArrayArray) {
+        List<List<Integer>> lists = new ArrayList<>();
+        for (int i = 0; i < intArrayArray.length; i++) {
+            lists.add(listOf(intArrayArray[i]));
+        }
+        return lists;
+    }
+    
     public static long factorial(final long n) {
         return (
             LongStream
