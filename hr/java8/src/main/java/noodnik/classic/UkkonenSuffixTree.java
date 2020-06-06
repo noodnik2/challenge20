@@ -1,5 +1,7 @@
 package noodnik.classic;
 
+import static noodnik.lib.Common.log;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -15,26 +17,47 @@ import java.util.function.Consumer;
  */
 public class UkkonenSuffixTree {
     
+    final String uchars;
+    final Node uroot;
     final Consumer<String> consoleSinkFn;
     
-    public UkkonenSuffixTree(Consumer<String> consoleSinkFn) {
+    public UkkonenSuffixTree(String chars, Consumer<String> consoleSinkFn) {
         this.consoleSinkFn = consoleSinkFn;
+        this.uchars = chars;
+        uroot = build(chars);
+    }
+        
+    public UkkonenSuffixTree(String chars) {
+        this(chars, null);
+    }
+
+    // TODO implement this for only [start-end) of the built tree
+    public int calcSum(int start, int end) {
+        log("calcSum(%s,%s)", start, end);
+//        return walkTreeNr(
+//            null, 
+//            e -> e.startIndex >= start && e.endIndex < end
+//        );
+        return walkTreeNr(
+            (node, substr, v, charsLen) -> { log("node(%s)", node); return true; }, 
+            e -> {
+                boolean b = (
+                    end < e.startIndex ? false
+                  : start > (e.endIndex == -1 ? uchars.length() : e.endIndex) ? false
+                  : true
+                );
+                log("edge[%s, %s) <=> limit[%s, %s): %s", e.startIndex, e.endIndex, start, end, b); 
+                return b; 
+            }
+        );
     }
     
-    public UkkonenSuffixTree() {
-        this(null);
-    }
-    
-    public int calcSum(final String chars) {        
-        return walkTreeNr(build(chars), chars, 0, END_IND, null);
+    public int calcSum() {        
+        return walkTreeNr(null, null);
     }    
 
-    public void draw(final String chars) {
-        walkTree(
-            build(chars), 
-            chars, 
-            0, 
-            END_IND,
+    public void draw() {
+        walkTreeNr(
             (node, substr, v, charsLen) -> {                
                 int maxLen = charsLen + 6;
                 String linkId = "";
@@ -49,45 +72,65 @@ public class UkkonenSuffixTree {
                     println("|" + repeat(" ", maxLen * v) + "|");
                     println("|" + repeat(" ", maxLen * v) + "|" + repeat(" ", 3) + substr + " " + substr.length()); 
                     println("|" + repeat(" ", maxLen * v) + "+" + repeat("-", maxLen - 1) + "* (" + node.id + linkId + ")"); 
-                }                
-            }
+                }
+                return true;
+            },
+            null
         );
     }    
 
-    int walkTree(
-        final Node rnode, 
-        final String chars, 
-        final int v, 
-        final int ed, 
-        final NodeVisitor nodeVisitor
+    public interface NodeFilter {
+        boolean isWaypoint(Node node, String substr, int v, int charsLen);
+    }
+    
+    public interface EdgeFilter {
+        boolean isRelevant(Edge edge);
+    }
+
+    public int walkTreeNr(
+        final NodeFilter nodeFilter,
+        final EdgeFilter edgeFilter
     ) {
         
-        if (rnode.outEdges == null) {
+        if (uroot.outEdges == null) {
             return 0;
         }
         
-        int charsLen = chars.length();
+        final int charsLen = uchars.length();
         int cz = 0;
+        
+        Queue<NodeAtLevel> stack = new LinkedList<>();
+        stack.add(new NodeAtLevel(uroot, 0));
 
-        for (final Map.Entry<Character, Edge> edg : rnode.outEdges.entrySet()) {
+        while(!stack.isEmpty()) {
             
-            int s = edg.getValue().startIndex;
-            int t = edg.getValue().endIndex;            
-            if (t == END_IND) {
-                t = (ed == END_IND) ? charsLen : ed;
-            }
-
-            String substr = substr(chars, s, t + 1);
-            int f = substr.length();
-
-            Node node = edg.getValue().bnode;
-            if (nodeVisitor != null) {
-                nodeVisitor.visitNode(node, substr, v, charsLen);
-            }
-
-            cz += f;
-            if (node.outEdges != null) {
-                cz += walkTree(node, chars, v + 1, ed, nodeVisitor);
+            final NodeAtLevel nodeAtLevel = stack.poll();
+            
+            for (final Map.Entry<Character, Edge> edg : nodeAtLevel.node.outEdges.entrySet()) {
+                
+                Edge edge = edg.getValue();
+                if (edgeFilter != null) {
+                    if (!edgeFilter.isRelevant(edge)) {
+                        continue;
+                    }
+                }
+                
+                final int start = edge.startIndex;
+                final int end = edge.endIndex != END_IND ? edge.endIndex : charsLen - 1;            
+    
+                cz += end - start + 1;
+    
+                final Node node = edge.bnode;
+                if (nodeFilter != null) {
+                    if (!nodeFilter.isWaypoint(node, uchars.substring(start, end + 1), nodeAtLevel.level, charsLen)) {
+                        continue;
+                    }
+                }
+    
+                if (node.outEdges != null) {
+                    stack.add(new NodeAtLevel(node, nodeAtLevel.level + 1));
+                }
+                
             }
             
         }
@@ -95,71 +138,16 @@ public class UkkonenSuffixTree {
         return cz;
     }
     
-    static class NodeAtLevel {
+    private static class NodeAtLevel {
         NodeAtLevel(Node node, int level) {
             this.node = node;
             this.level = level;
         }
-        Node node;
-        int level;
+        final Node node;
+        final int level;
     }
 
-    int walkTreeNr(
-        final Node rnode, 
-        final String chars, 
-        final int v,    // TODO remove - always 0
-        final int ed,   // TODO remove - always END_IND
-        final NodeVisitor nodeVisitor   // TODO remove??
-    ) {
-        
-        if (rnode.outEdges == null) {
-            return 0;
-        }
-        
-        int charsLen = chars.length();
-        int cz = 0;
-        
-        Queue<NodeAtLevel> stack = new LinkedList<>();
-        stack.add(new NodeAtLevel(rnode, v));
-
-        while(!stack.isEmpty()) {
-            
-            NodeAtLevel nodeAtLevel = stack.poll();
-            
-            for (final Map.Entry<Character, Edge> edg : nodeAtLevel.node.outEdges.entrySet()) {
-                
-                int s = edg.getValue().startIndex;
-                int t = edg.getValue().endIndex;            
-                if (t == END_IND) {
-                    t = (ed == END_IND) ? charsLen : ed;
-                }
-    
-                String substr = substr(chars, s, t + 1);
-                int f = substr.length();
-    
-                Node node = edg.getValue().bnode;
-                if (nodeVisitor != null) {
-                    nodeVisitor.visitNode(node, substr, v, charsLen);
-                }
-    
-                cz += f;
-                if (node.outEdges != null) {
-                    stack.add(new NodeAtLevel(node, v + 1));
-//                    cz += walkTree(node, chars, v + 1, ed, nodeVisitor);
-                }
-                
-            }
-            
-        }
-        
-        return cz;
-    }
-
-    interface NodeVisitor {
-        void visitNode(Node node, String substr, int v, int charsLen);
-    }
-
-    String repeat(final String string, int i) {
+    private String repeat(final String string, int i) {
         StringBuffer sb = new StringBuffer();
         while(i-->0) {
             sb.append(string);
@@ -167,21 +155,7 @@ public class UkkonenSuffixTree {
         return sb.toString();
     }
     
-    String substr(final String s, final int start, int end) {
-        int l = s.length();
-        if (start < 0 || start >= l) {
-            return "";
-        }
-        if (end <= start) {
-            return "";
-        }
-        if (end >= l) {
-            end = l;
-        }
-        return s.substring(start, end);
-    }
-    
-    void println(String s) {
+    private void println(String s) {
         if (consoleSinkFn != null) {
             consoleSinkFn.accept(s);
         }
@@ -191,29 +165,74 @@ public class UkkonenSuffixTree {
      *  NOTE: translation from Python of: https://github.com/mutux/Ukkonen-s-Suffix-Tree-Algorithm
      */
         
-    static int END_IND = -1;    // '#'
+    private static int END_IND = -1;    // '#'
     
-    static class ParentKey {
+    private static class ParentKey {
         
-        Node node;
-        char c;
+        private Node node;
+//        char c;
+        
+//        public String toString() {
+//            return format("pkey(%s)", node);
+//        }
         
         ParentKey(Node node, char c) {
             this.node = node;
-            this.c = c;
+//            this.c = c;
         }
         
     }
 
-    static class Edge {
+    private static class Node {
         
-        Node anode;       
-        int startIndex;
-        int endIndex;
-        Node bnode;
+        static int nextId = 0;
         
-        Edge(Node anode, int startIndex, int endIndex, Node bnode) {
-            this.anode = anode;
+        private ParentKey parentKey;
+        private Map<Character, Edge> outEdges;
+        private Node suffixLink;
+        final int id;
+        
+//        public String toString() {
+//            return format("node %d->%s: %s", id, parentKey, outEdges);
+//        }
+        
+        private Node() {
+            id = nextId++;
+        }
+        
+        private void setOutEdge(final Character key, final Edge edge) {
+            if (outEdges == null) {
+                outEdges = new HashMap<>();
+            }
+            outEdges.put(key, edge);
+        }
+        
+        private Edge getOutEdge(final Character key) {
+            if (outEdges == null) {
+                return null;
+            }
+            return outEdges.get(key);
+        }
+        
+        private void setParentKey(final ParentKey parentKey) {
+            this.parentKey = parentKey;
+        }              
+        
+    }
+    
+    private static class Edge {
+        
+//        Node anode;       
+        private int startIndex;
+        private int endIndex;
+        private Node bnode;
+        
+//        public String toString() {
+//            return format("edge(%d:%d)->%s", startIndex, endIndex, bnode == null ? null : bnode.id);
+//        }
+        
+        private Edge(Node anode, int startIndex, int endIndex, Node bnode) {
+//            this.anode = anode;
             this.startIndex = startIndex;
             this.endIndex = endIndex;
             this.bnode = bnode;
@@ -221,7 +240,7 @@ public class UkkonenSuffixTree {
         
     }
     
-    static class StdResult {
+    private static class StdResult {
         
         int remainder;
         Node actNode;
@@ -237,20 +256,20 @@ public class UkkonenSuffixTree {
         
     }
     
-    static class UnfoldResult extends StdResult {
-        UnfoldResult(int remainder, Node actNode, Character actKey, int actLen) {
+    private static class UnfoldResult extends StdResult {
+        private UnfoldResult(int remainder, Node actNode, Character actKey, int actLen) {
             super(remainder, actNode, actKey, actLen);
         }
     }
     
-    static class HopResult {
+    private static class HopResult {
         
         Node actNode;
         Character actKey;
         int actLen;
         int actLenRe;
         
-        HopResult(Node actNode, Character actKey, int actLen, int actLenRe) {
+        private HopResult(Node actNode, Character actKey, int actLen, int actLenRe) {
             this.actNode = actNode;
             this.actKey = actKey;
             this.actLen = actLen;
@@ -258,53 +277,20 @@ public class UkkonenSuffixTree {
         }
     }
 
-    static class StepResult extends HopResult {
+    private static class StepResult extends HopResult {
 
-        boolean isLost;
+        private boolean isLost;
         
-        StepResult(boolean isLost, Node actNode, Character actKey, int actLen, int actLenRe) {
+        private StepResult(boolean isLost, Node actNode, Character actKey, int actLen, int actLenRe) {
             super(actNode, actKey, actLen, actLenRe);
             this.isLost = isLost;
         }
         
     }
     
-    public static class Node {
-        
-        static int nextId = 0;
-        
-        ParentKey parentKey;
-        Map<Character, Edge> outEdges;
-        Node suffixLink;
-        final int id;
-        
-        Node() {
-            id = nextId++;
-        }
-        
-        void setOutEdge(final Character key, final Edge edge) {
-            if (outEdges == null) {
-                outEdges = new HashMap<>();
-            }
-            outEdges.put(key, edge);
-        }
-        
-        Edge getOutEdge(final Character key) {
-            if (outEdges == null) {
-                return null;
-            }
-            return outEdges.get(key);
-        }
-        
-        void setParentKey(final ParentKey parentKey) {
-            this.parentKey = parentKey;
-        }
-        
-    }
-    
-    public Node build(final String chars) {
+    private static Node build(final String chars) {
                 
-        Node root = new Node();
+        final Node root = new Node();
         Node actNode = root;
         Character actKey = null;
         int actLen = 0;
@@ -390,7 +376,7 @@ public class UkkonenSuffixTree {
         
     }
     
-    UnfoldResult unfold(
+    private static UnfoldResult unfold(
         final Node root, 
         final String chars, 
         final int ind, 
@@ -471,7 +457,7 @@ public class UkkonenSuffixTree {
         return new UnfoldResult(remainder, actNode, actKey, actLen);
     }
     
-    StepResult step(
+    private static StepResult step(
         final String chars, 
         final int ind, 
         final Node actNode, 
@@ -513,7 +499,7 @@ public class UkkonenSuffixTree {
         return new StepResult(false, actNode, actKey, actLen, indRemainder);
     }
     
-    HopResult hop(
+    private static HopResult hop(
         final int ind, 
         Node actNode, 
         Character actKey, 

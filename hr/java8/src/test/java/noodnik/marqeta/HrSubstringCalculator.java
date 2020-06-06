@@ -171,7 +171,7 @@ public class HrSubstringCalculator {
     static class UkkonenSubstringCalculator implements SubstringCalculator {
 
         public int substringCalculator(String s) {
-            return new UkkonenSuffixTree().calcSum(s);
+            return new UkkonenSuffixTree(s).calcSum();
         }
         
     }

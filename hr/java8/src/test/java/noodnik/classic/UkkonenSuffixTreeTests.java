@@ -14,22 +14,32 @@ public class UkkonenSuffixTreeTests {
     
     @Test
     public void firstTestCase() {       
-        assertEquals(53, new UkkonenSuffixTree().calcSum("kincenvizh"));        
+        assertEquals(53, new UkkonenSuffixTree("kincenvizh").calcSum());        
     }    
     
     @Test
     public void singleCharTestCase() {       
-        assertEquals(67, new UkkonenSuffixTree().calcSum("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));        
+        assertEquals(67, new UkkonenSuffixTree("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").calcSum());        
     }    
     
     @Test
     public void emptyTestCase() {       
-        assertEquals(0, new UkkonenSuffixTree().calcSum(""));        
+        assertEquals(0, new UkkonenSuffixTree("").calcSum());
+    }    
+
+    @Test
+    public void multiWalkTreeTestCase0() {
+        assertEquals(15, new UkkonenSuffixTree("banana").calcSum());
+    }    
+
+    @Test
+    public void multiWalkTreeTestCase1() {
+        assertEquals(1, new UkkonenSuffixTree("banana").calcSum(0, 1)); // TODO fix
     }    
 
     @Test
     public void drawTreeTestCase() {       
-        new UkkonenSuffixTree(s -> log(s)).draw("banana");        
+        new UkkonenSuffixTree("banana", s -> log(s)).draw();        
     }    
 
 }
