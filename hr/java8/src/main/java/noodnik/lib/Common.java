@@ -84,5 +84,18 @@ public class Common {
             .reduce(1, (long x, long y) -> x * y)
         );
     }
+    
+    public static void elapsedTimeRunner(String label, Runnable r) {
+        elapsedTimeRunner(label, () -> r.run());
+    }
+    
+    public static <T> T elapsedTimeRunner(String label, Supplier<T> r) {
+        final long startTimeMillis = System.currentTimeMillis();
+        try {
+            return r.get();
+        } finally {
+            log("elapsed %s(%sms)", label, System.currentTimeMillis() - startTimeMillis);
+        }
+    }
 
 }

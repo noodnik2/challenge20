@@ -42,40 +42,59 @@ public class RunLengthEncoder {
     public void edgeTestCase6() {
         assertEquals("1a2b2a1c1a", runLengthEncode("abbaaca"));
     }
+
+    @Test
+    public void doubleFlushTestCase() {
+        StringBuffer stringBuffer = new StringBuffer();
+        rleSinkTo("abbccc", (l, c) -> stringBuffer.append("" + l + c)).flush().flush();
+        assertEquals("1a2b3c", stringBuffer.toString());
+    }
     
     static class RleSink {
+        
         public RleSink(BiConsumer<Integer, Character> drain) {
             this.drain = drain;
         }
+        
         final BiConsumer<Integer, Character> drain;
         int runLength;
         Character currentChar;
-        void accumulate(char c) {
+        
+        RleSink accumulate(char c) {
             if (currentChar != null) {
                 if (currentChar == c) {
                     runLength++;
-                    return;
+                    return this;
                 }
                 flush();
             }
             runLength = 1;
             currentChar = c;
+            return this;
         }
-        void flush() {
+        
+        RleSink flush() {
             if (runLength > 0) {
                 drain.accept(runLength,  currentChar);
+                runLength = 0;
             }
+            return this;
         }
+        
     }
     
     String runLengthEncode(String s) {
         StringBuffer stringBuffer = new StringBuffer();
-        RleSink sink = new RleSink((l, c) -> stringBuffer.append("" + l + c));         
+        rleSinkTo(s, (l, c) -> stringBuffer.append("" + l + c)).flush();
+        return stringBuffer.toString();
+    }
+
+    private RleSink rleSinkTo(String s, BiConsumer<Integer, Character> drain) {
+        RleSink sink = new RleSink(drain);
         for (char c : s.toCharArray()) {             
             sink.accumulate(c);
         }
-        sink.flush();
-        return stringBuffer.toString();
+        return sink;
     }
      
 }
