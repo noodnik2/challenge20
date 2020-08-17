@@ -22,9 +22,8 @@ public class HowManySubstringsTests {
     @Test
     public void testCase0() {
         String s = "kincenvizh";
-        assertCorrectResults(
+        assertCorrectResults(                           
             new int[] { 1, 3, 53, 34, 15, 1 },
-           s,
             new int[][] {
                 { 0, 0 },
                 { 0, 1 },
@@ -33,7 +32,17 @@ public class HowManySubstringsTests {
                 { 3, s.length() - 3 },
                 { s.length() - 1, s.length() - 1 },
             },
-            new SimpleSubSubstringCounter()
+            new SimpleSubSubstringCounter(s)
+        );
+    }
+
+    @Test
+    public void testCaseExp() {
+        String s = "abcde";
+        assertCorrectResults(                           
+            new int[] { 1 },
+            new int[][] { { 1, 1 } },
+            new SimpleSubSubstringCounter(s)
         );
     }
     
@@ -43,14 +52,14 @@ public class HowManySubstringsTests {
         public String toString() { return format("s(%s), q(%s)", s.length(), queries.length); }
     }
     
-//    @Test
-//    public void testCase10() throws FileNotFoundException {
-//        HrInput hrInput = readInput("noodnik/hackerrank/HowManySubstringsTestsData/input10.txt");
-//        log("%s", hrInput);
-//        SimpleSubSubstringCounter simpleSubSubstringCounter = new SimpleSubSubstringCounter();
-//        int[] countSubstrings = simpleSubSubstringCounter.countSubstrings(hrInput.s, hrInput.queries);
-//        log("a(%s)", listOf(countSubstrings));
-//    }    
+    @Test
+    public void testCase10() throws FileNotFoundException {
+        HrInput hrInput = readInput("noodnik/hackerrank/HowManySubstringsTestsData/input10.txt");
+        log("%s", hrInput);
+        SimpleSubSubstringCounter simpleSubSubstringCounter = new SimpleSubSubstringCounter(hrInput.s);
+        int[] countSubstrings = simpleSubSubstringCounter.countSubstrings(hrInput.queries);
+        log("a(%s)", listOf(countSubstrings));
+    }    
     
     HrInput readInput(String sourceName) throws FileNotFoundException {
         InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream(sourceName);
@@ -92,34 +101,33 @@ public class HowManySubstringsTests {
     
     static void assertCorrectResults(
         int[] expectedResults,
-        String s,
         int[][] queries,
         SubSubstringCounter subSubstringCounter
     ) {
-        int[] actualResults = subSubstringCounter.countSubstrings(s, queries);
+        int[] actualResults = subSubstringCounter.countSubstrings(queries);
         assertEquals(listOf(expectedResults), listOf(actualResults));
     }
         
     interface SubstringCalculator {
-        int substringCalculator(String s);
+        int substringCalculator(int left, int right);
     }
 
     interface SubSubstringCounter {
-        int[] countSubstrings(String s, int[][] queries);
+        int[] countSubstrings(int[][] queries);
     }
 
     static class SimpleSubSubstringCounter implements SubSubstringCounter {
         
-//        SubstringCalculator substringCalculator = new SimpleSubstringCalculator();
-        SubstringCalculator substringCalculator = new UkkonenSubstringCalculator();
+        final SubstringCalculator substringCalculator;
         
-        public int[] countSubstrings(String s, int[][] queries) {
+        SimpleSubSubstringCounter(String s) {
+            substringCalculator = new UkkonenSubstringCalculator(s);
+        }
+        
+        public int[] countSubstrings(int[][] queries) {
             int[] results = new int[queries.length];
             for (int i = 0; i < queries.length; i++) {
-                results[i] = substringCalculator.substringCalculator(
-                    s.substring(queries[i][0], queries[i][1] + 1)
-                );
-                log("c");
+                results[i] = substringCalculator.substringCalculator(queries[i][0], queries[i][1]);
             }
             return results;
         }
@@ -127,14 +135,26 @@ public class HowManySubstringsTests {
     }
 
     static class UkkonenSubstringCalculator implements SubstringCalculator {
-         public int substringCalculator(String s) {
-             return new UkkonenSuffixTree().calcSum(s);
-         }        
-     }
+        final String s;
+        UkkonenSubstringCalculator(String s) {
+            this.s = s;
+        }        
+        public int substringCalculator(int left, int right) {
+            return new UkkonenSuffixTree(s.substring(left, right + 1)).calcSum();
+//            return new UkkonenSuffixTree(s).calcSum(left, right + 1);  // TODO fix
+        }        
+    }
 
     static class SimpleSubstringCalculator implements SubstringCalculator {
 
-        public int substringCalculator(String s0) {
+        final String s;
+        SimpleSubstringCalculator(String s) {
+            this.s = s;
+        }        
+
+        public int substringCalculator(int left, int right) {
+            
+            String s0 = s.substring(left, right + 1);
 
             Set<String> seenBefore = new HashSet<>();
             Queue<String> inProgressQ = new LinkedList<>();
@@ -158,19 +178,15 @@ public class HowManySubstringsTests {
                 
                 seenBefore.add(s);
                 
-                int len = s.length(); // abcd
+                int len = s.length();                       // abcd
                 if (len == 1) {
                     continue;
                 }
                 
-                String left = s.substring(0, len - 1);   // abc
-                String right = s.substring(1);   // bcd
-                
-                inProgressQ.add(left);
-                inProgressQ.add(right);
+                inProgressQ.add(s.substring(0, len - 1));   // abc
+                inProgressQ.add(s.substring(1));            // bcd
             }
             
-//            log("s(%s) => %s", s0, seenBefore.size());
             return seenBefore.size();
 
         }
