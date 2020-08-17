@@ -1,3 +1,5 @@
+package noodnik.okera;
+
 import static java.lang.String.format;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -23,7 +25,10 @@ public class AggregationProcessorTests {
         expectedResultsMap.put("key2", new IterativeSolution.AggResult(1, "zzz"));
         expectedResultsMap.put("key3", new IterativeSolution.AggResult(1, "world"));
         assertCorrectResult(
-            new TestDataDescriptor(new File(SMALL_DATA_TXT_FILENAME), expectedResultsMap), 
+            new TestDataDescriptor(
+                new File(getClass().getResource(SMALL_DATA_TXT_FILENAME).getFile()),
+                expectedResultsMap
+            ),
             1024
         );
     }
