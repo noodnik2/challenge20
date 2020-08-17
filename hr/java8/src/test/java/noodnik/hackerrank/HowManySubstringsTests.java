@@ -35,6 +35,16 @@ public class HowManySubstringsTests {
             new SimpleSubSubstringCounter(s)
         );
     }
+
+    @Test
+    public void testCaseExp() {
+        String s = "abcde";
+        assertCorrectResults(                           
+            new int[] { 1 },
+            new int[][] { { 1, 1 } },
+            new SimpleSubSubstringCounter(s)
+        );
+    }
     
     static class HrInput {
         int[][] queries;
