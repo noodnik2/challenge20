@@ -1,16 +1,13 @@
 package noodnik.classic;
 
-import static java.lang.String.format;
-import static noodnik.lib.Common.elapsedTimeRunner;
 import static noodnik.lib.Common.log;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -18,121 +15,89 @@ import java.util.function.Consumer;
  * - https://www.cs.helsinki.fi/u/ukkonen/SuffixT1withFigs.pdf
  * - https://github.com/mutux/Ukkonen-s-Suffix-Tree-Algorithm
  * - https://github.com/mission-peace/interview/blob/master/src/com/interview/suffixprefix/SuffixTree.java
- * - https://gist.github.com/makagonov/22ab3675e3fc0031314e8535ffcbee2c
  * - https://stackoverflow.com/questions/9452701/ukkonens-suffix-tree-algorithm-in-plain-english/9513423#9513423
- * - https://brenden.github.io/ukkonen-animation/
- * - https://github.com/baratgabor/SuffixTree
  */
-public class UkkonenSuffixTree {
+public class UkkonenSuffixTree0 {
     
     final String uchars;
     final Node uroot;
     final Consumer<String> consoleSinkFn;
     
-    public UkkonenSuffixTree(String chars, Consumer<String> consoleSinkFn) {
+    public UkkonenSuffixTree0(String chars, Consumer<String> consoleSinkFn) {
         this.consoleSinkFn = consoleSinkFn;
         this.uchars = chars;
-        uroot = elapsedTimeRunner("build", () -> build(chars));
-        log("nodes(%s)", Node.nextId);
+        uroot = build(chars);
     }
-    
-//    Node subTree(String chars) {
-//        Node newRoot = uroot;
-////      Node newRoot = new Node(uroot);
-//        Collection<Node> nodesToKeep = new ArrayList<>();
-//        for (int i = 0; i < chars.length(); i++) {
-//            String subs = chars.substring(i);
-//            nodesToKeep.addAll(findNodes(newRoot, subs));
-//        }
-//        Queue<Node> nodeStack = new LinkedList<>();
-//        nodeStack.add(newRoot);
-//        while(!nodeStack.isEmpty()) {
-//            Node node = nodeStack.poll();
-//            for (Map.Entry<Character, Edge> edgeEntry : node.outEdges.entrySet()) {
-//                if (nodesToKeep.contains(edgeEntry.getValue().bnode)) {
-//                    node.outEdges.remove(edgeEntry.getKey());
-//                }
-//            }
-//        }
-//        return newRoot;
-//    }
-//    
-//    private String substr(String chars, int start, int end) {
-//        return chars.substring(start, end == END_IND ? chars.length() : end);
-//    }
-//        
-//    private List<Node> findNodes(Node root, String subs) {
-//        int index = 0;
-//        char edgeChar = subs.charAt(index);
-//        Edge edge = root.getOutEdge(edgeChar);
-//        if (edge == null) {
-//            throw new RuntimeException("out edge not found for: " + edgeChar);
-//        }
-//        String edgeLabel = substr(uchars, edge.startIndex, edge.endIndex);
-//        // cases to support:
-//        //  1. edgeLabel longer than subs
-//        //  2. edgeLabel equal length as subs
-//        //  3. edgeLabel shorter than subs
-//        if (edgeLabel.length() == subs.length()) {
-//            //  2. edgeLabel equal length as subs
-//            edge.bnode
-//        }
-//        return null;
-//    }
-
-    public UkkonenSuffixTree(String chars) {
+        
+    public UkkonenSuffixTree0(String chars) {
         this(chars, null);
     }
 
-    // TODO implement this for only [left..right] of the built tree
-    public int calcSum(int left, int right) {
-        log("calcSum[%s, %s]", left, right);
-        return walkTreeNr(null, left, right);
+    // TODO implement this for only [start-end) of the built tree
+    public int calcSum(int start, int end) {
+        log("calcSum(%s,%s)", start, end);
+        return walkTreeNr(
+            (node, substr, v, charsLen) -> { log("node(%s)", node); return true; }, 
+            e -> {
+                int iStart = Math.max(start, e.startIndex);
+                int iEnd = Math.min(end, e.endIndex == END_IND ? uchars.length() : e.endIndex + 1);
+                int iLen = (iEnd <= iStart) ? 0 : iEnd - iStart;
+                log("edge[%s, %s) <=> limit[%s, %s): %s [%s]", e.startIndex, e.endIndex, start, end, iLen, uchars.substring(iStart, iStart + iLen)); 
+                return iLen; 
+            }
+        );
     }
     
     public int calcSum() {        
-        return walkTreeNr(null, 0, uchars.length() - 1);
+        return walkTreeNr(null, null);
     }    
 
     public void draw() {
         walkTreeNr(
-            (edge, s, level) -> printBranch(edge, s, level),
-            0,
-            uchars.length() - 1
+            (edge, s, lvl, charsLen) -> {                
+                printBranch(
+                    edge, 
+                    s, 
+                    lvl, 
+                    charsLen + 6, 
+                    edge.bnode.suffixLink != null ? "->" + edge.bnode.suffixLink : ""
+                ); 
+                return true;
+            },
+            null
         );
     }
 
-    private void printBranch(Edge edge, String s, int lvl) {
-        final int maxLen = uchars.length() + 5;
-        final String lp = lvl == 0 ? " " : "|";
-        final String ep = lvl == 0 ? "+" : "|";
-        final String linkId = edge.bnode.suffixLink != null ? "->" + edge.bnode.suffixLink : "";
-        println(format("%s|", repeat(lp, maxLen * lvl)));
-        println(format("%s| %s (%s)", repeat(lp, maxLen * lvl), s, s.length())); 
-        println(format("%s%s-%s id:%s", ep, repeat(" ", maxLen * lvl), repeat("-", maxLen - 1), edge.bnode.id + linkId));
+    private void printBranch(Edge edge, String s, int lvl, int maxLen, String linkId) {
+        Node node = edge.bnode;
+        String lp = lvl == 0 ? " " : "|";
+        String ep = lvl == 0 ? "+" : "|";
+        String sp = s.substring(edge.startIndex, edge.endIndex == END_IND ? s.length() : edge.endIndex + 1);
+        println(repeat(lp, maxLen * lvl) + "|");
+        println(repeat(lp, maxLen * lvl) + "|" + repeat(" ", 3) + s + "[" + sp + "] " + sp.length()); 
+        println(ep + repeat(" ", maxLen * lvl) + "-" + repeat("-", maxLen - 1) + "* (" + node.id + linkId + ")");
     }    
 
-    public interface EdgeVisitor {
-        void visit(Edge edge, String substr, int level);
+    public interface NodeFilter {
+        boolean isWaypoint(Edge edge, String substr, int level, int charsLen);
+    }
+    
+    public interface EdgeFilter {
+        int edgeLen(Edge edge);
     }
 
-    public int walkTreeNr(final EdgeVisitor edgeVisitor, int left, int right) {
-        return elapsedTimeRunner("walkTreeNr", () -> walkTreeNr0(edgeVisitor, left, right));
-    }
-
-    private int walkTreeNr0(final EdgeVisitor edgeVisitor, int left, int right) {
-
+    public int walkTreeNr(
+        final NodeFilter nodeFilter,
+        final EdgeFilter edgeFilter
+    ) {
+        
         if (uroot.outEdges == null) {
             return 0;
         }
         
         final int charsLen = uchars.length();
         int cz = 0;
-
-        // TODO implement left, right
-        assert left == 0;
-        assert right == charsLen - 1;
-
+        
         Queue<NodeAtLevel> stack = new LinkedList<>();
         stack.add(new NodeAtLevel(uroot, 0));
 
@@ -147,98 +112,26 @@ public class UkkonenSuffixTree {
                 final int start = edge.startIndex;
                 final int end = edge.endIndex != END_IND ? edge.endIndex : charsLen - 1;            
 
-//                String considering = uchars.substring(start, end + 1);
-//                String lookingFor = uchars.substring(left, right + 1);
-//                log(
-//                    "%s ? %s: %s", 
-//                    considering, 
-//                    lookingFor,
-//                    lookingFor.contains(considering)
-//                );
-//                if (lookingFor.contains(considering)) {
-                    cz += end - start + 1;
-//                }
-                
-                if (edgeVisitor != null) {
-//                    String substring = considering;
-                    String substring = uchars.substring(start, end + 1);
-                    edgeVisitor.visit(edge, substring, nodeAtLevel.level);
+                int eLen = end - start + 1;
+                if (edgeFilter != null) {
+                    int edgeLen = edgeFilter.edgeLen(edge);
+//                    if (edgeLen == 0) {
+////                        continue;
+//                    }
+//                    eLen = edgeLen;
                 }
-    
-              final Node node = edge.bnode;
-                if (node.outEdges != null) {
-                    stack.add(new NodeAtLevel(node, nodeAtLevel.level + 1));
-                }
-                
-            }
-            
-        }
-        
-        return cz;
-    }
-    
-    private Collection<Edge> find(int left, int right) {
-        final List<Edge> edgeList = new ArrayList<>();
-        int nextIndex = left;
-        int foundLength = 0;
-        int targetLength = right - left + 1;
-        while(foundLength < targetLength) {
-            char edgeChar = uchars.charAt(nextIndex);
-            Edge edge = uroot.getOutEdge(edgeChar);
-            if (edge == null) {
-                throw new RuntimeException("edge not found for: " + edgeChar);
-            }
-            edgeList.add(edge);
-            int edgeEnd = edge.endIndex == END_IND ? uchars.length() : edge.endIndex;
-            int edgeLength = edgeEnd - edge.startIndex + 1;
-            foundLength += edgeLength;
-        }
-        return edgeList;
-    }
-
-    private int walkTreeNr1(final EdgeVisitor edgeVisitor, int left, int right) {
-
-        if (uroot.outEdges == null) {
-            return 0;
-        }
-        
-        final int charsLen = uchars.length();
-        int cz = 0;
-
-        // TODO implement left, right
-        assert left == 0;
-        assert right == charsLen - 1;
-
-        Queue<NodeAtLevel> stack = new LinkedList<>();
-        stack.add(new NodeAtLevel(uroot, 0));
-
-        while(!stack.isEmpty()) {
-            
-            final NodeAtLevel nodeAtLevel = stack.poll();
-            
-            for (final Map.Entry<Character, Edge> edg : nodeAtLevel.node.outEdges.entrySet()) {
-                
-                Edge edge = edg.getValue();
-                
-                final int start = edge.startIndex;
-                final int end = edge.endIndex != END_IND ? edge.endIndex : charsLen - 1;            
-
-//                String considering = uchars.substring(start, end + 1);
-//                String lookingFor = uchars.substring(left, right + 1);
-//                log(
-//                    "%s ? %s: %s", 
-//                    considering, 
-//                    lookingFor,
-//                    lookingFor.contains(considering)
-//                );
-//                if (lookingFor.contains(considering)) {
-                    cz += end - start + 1;
+                final String x = uchars.substring(start, start + eLen);
+//                if (!seen.contains(x)) {
+                    cz += eLen;
+//                    seen.add(x);
+//                    log("x(%s)", x);
 //                }
-                
-                if (edgeVisitor != null) {
-//                    String substring = considering;
-                    String substring = uchars.substring(start, end + 1);
-                    edgeVisitor.visit(edge, substring, nodeAtLevel.level);
+    
+//                final Node node = edge.bnode;
+                if (nodeFilter != null) {
+                    if (!nodeFilter.isWaypoint(edge, uchars.substring(start, end + 1), nodeAtLevel.level, charsLen)) {
+                        continue;
+                    }
                 }
     
               final Node node = edge.bnode;
