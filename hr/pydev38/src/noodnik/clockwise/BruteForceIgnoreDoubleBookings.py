@@ -1,11 +1,17 @@
 
 debug_enabled = False
 
+#
+#   In this primitive "brute-force" approach, we order the meetings by the
+#   number of attendees (largest meetings first), discarding subsequent
+#   meetings having double booked attendees.
+#
+
 def packed_meetings(meetings_list):
 
-    #  Canonicalize and order the list of meetings:
-    #  - Remove duplicate meetings
-    #  - Order the meeting list by attendee count(largest first), then by meeting order
+    #  canonicalize and order the list of meetings:
+    #  - remove duplicate meetings
+    #  - order the meeting list by attendee count(largest first), then by meeting order
 
     meeting_list_sortkey = lambda meeting: (-len(meeting), meeting)
     sorted_meetings_list = sorted(
@@ -16,13 +22,9 @@ def packed_meetings(meetings_list):
         ),
         key = meeting_list_sortkey
     )
-
     debug(f"sorted_meetings_list{str(sorted_meetings_list)}")
 
-    # Traverse the meeting list, building a map of attendees to meetings
-    # - Ignore the meeting if an incoming meeting would produce any double bookings; else:
-    # - Plan the incoming meeting into the map
-
+    # construct a dictionary of attendee to meeting, rejecting double bookings
     planned_attendee_meetings = {}
     for proposed_meeting in sorted_meetings_list:
         planned_attendees = list(planned_attendee_meetings.keys())
@@ -36,7 +38,7 @@ def packed_meetings(meetings_list):
         for attendee in proposed_meeting:
             planned_attendee_meetings[attendee] = proposed_meeting
 
-    # Return the list of meetings planned for all attendees (i.e., map values)
+    # return the list of meetings planned for all attendees (i.e., map values)
     return sorted(
         list(
             list(meeting) for meeting in set(planned_attendee_meetings.values())
