@@ -3,7 +3,6 @@ package noodnik.autodesk;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import static noodnik.lib.Common.*;
 
 public class FibonacciTests {
 
