@@ -1,6 +1,6 @@
 
-# debug_enabled = False
-debug_enabled = True
+debug_enabled = False
+# debug_enabled = True
 
 #
 #   This approach ignores double booked meetings after ordering the meetings by the number
@@ -41,7 +41,7 @@ class MeetingCalculator:
              or len(meeting) > len(self.double_booked_attendees_largest_meeting[double_booked_attendees_key])
             ):
                 self.double_booked_attendees_largest_meeting[double_booked_attendees_key] = meeting
-        print(f"double_booked_attendees_largest_meeting{self.double_booked_attendees_largest_meeting}")
+        debug(f"double_booked_attendees_largest_meeting{self.double_booked_attendees_largest_meeting}")
 
     def meeting_value(self, focus_meeting):
         seated_attendees = set(focus_meeting)
@@ -55,7 +55,7 @@ class MeetingCalculator:
                     seated_attendees.update(meeting)
                     continue
                 largest_unrelated_meeting = self.double_booked_attendees_largest_meeting[tuple(double_booked_attendees)]
-                print(f"largest_unrelated_meeting{largest_unrelated_meeting} for{double_booked_attendees}")
+                debug(f"largest_unrelated_meeting{largest_unrelated_meeting} for{double_booked_attendees}")
                 seated_attendees.update(largest_unrelated_meeting)
         debug(f"for{focus_meeting} seated_attendee_count({len(seated_attendees)}) seated_attendees{seated_attendees}")
         return len(seated_attendees)

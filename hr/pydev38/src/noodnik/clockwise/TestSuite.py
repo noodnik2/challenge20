@@ -8,7 +8,11 @@
 # from BruteForceIgnoreDoubleBookings6 import packed_meetings
 # from BruteForceIgnoreDoubleBookings7 import packed_meetings
 # from BruteForceIgnoreDoubleBookings8 import packed_meetings
-from BruteForceIgnoreDoubleBookings9 import packed_meetings
+# from BruteForceIgnoreDoubleBookings9 import packed_meetings
+# from BruteForceIgnoreDoubleBookings10 import packed_meetings
+from BruteForceIgnoreDoubleBookings11 import packed_meetings
+# from BruteForceIgnoreDoubleBookings12 import packed_meetings
+# from BruteForceIgnoreDoubleBookings13 import packed_meetings
 
 def attendee_count(meeting_list):
     meeting_attendees = [p for sublist in meeting_list for p in sublist]
@@ -29,6 +33,8 @@ def runTestCase(description, expected_result, test_data):
     # if description != "example3.5b":
     # if description != "Test5":
     # if description != "example3.4":
+    # if description != "example1b":
+    # if description != "example3.5a2":
     #     return
     print(f"{description}: {test_data}")
     canonicalized_expected_result = canonicalize(expected_result)
@@ -48,6 +54,8 @@ def runTestCase(description, expected_result, test_data):
 
 # Based upon the examples given:
 runTestCase("example1", [[0,1,2]], [[0,1,2],[1,2]])
+runTestCase("example1a", [[0, 1, 2]], [[0, 1, 2], [1, 3], [2, 3]])
+runTestCase("example1b", [[1, 3], [2, 4]], [[0, 1, 2], [1, 3], [2, 4]])
 runTestCase("example2", [[0,1]], [[0,1],[0],[1]])
 runTestCase("example3", [[0,1,2]], [[0,1,2],[2,3]])
 runTestCase("example3.1", [[1,2,3,4]], [[1,2,3,4],[0,1,2]])
@@ -61,6 +69,12 @@ runTestCase(
     "example3.5a",
     [['bob', 'betty'], ['fred', 'wilma']],
     [['bob', 'betty'], ['bob', 'henry', 'fred'], ['fred', 'wilma']]
+)
+
+runTestCase(
+    "example3.5a2",
+    [['bob', 'fred', 'henry'], ['frank', 'louise']],
+    [['bob', 'betty', 'frank'], ['bob', 'henry', 'fred'], ['fred', 'wilma'], ['frank', 'louise']]
 )
 
 runTestCase(
