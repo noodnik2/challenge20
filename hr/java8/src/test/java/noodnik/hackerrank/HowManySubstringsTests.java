@@ -19,7 +19,7 @@ import noodnik.classic.UkkonenSuffixTree;
 
 public class HowManySubstringsTests {
 
-    @Test
+    @Test(timeout = 5000L)
     public void testCase0() {
         String s = "kincenvizh";
         assertCorrectResults(                           
@@ -36,7 +36,7 @@ public class HowManySubstringsTests {
         );
     }
 
-    @Test
+    @Test(timeout = 1000L)
     public void testCaseExp() {
         String s = "abcde";
         assertCorrectResults(                           
@@ -52,7 +52,7 @@ public class HowManySubstringsTests {
         public String toString() { return format("s(%s), q(%s)", s.length(), queries.length); }
     }
     
-    @Test
+    @Test(timeout = 10000L)
     public void testCase10() throws FileNotFoundException {
         HrInput hrInput = readInput("noodnik/hackerrank/HowManySubstringsTestsData/input10.txt");
         log("%s", hrInput);

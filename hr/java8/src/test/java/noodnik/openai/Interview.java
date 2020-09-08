@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 
 public class Interview {
 
-    @Test
+    @Test(timeout = 10000L)
     public void firstTestCase() {
         Solution.crawl("https://www.openai.com");
     }
