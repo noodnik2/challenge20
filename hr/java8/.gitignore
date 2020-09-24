@@ -1,5 +1,5 @@
-settings.gradle
-.idea/
-.gradle/
-out/
-**/build/
+**.class
+.*
+!/.gitignore
+bin/
+build/

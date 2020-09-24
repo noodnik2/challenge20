@@ -1,18 +1,24 @@
+
+
 plugins {
-    id 'groovy'
     id 'java'
+    id 'idea'
 }
 
-group 'marty'
-version '1.0-SNAPSHOT'
-
-sourceCompatibility = 1.8
-
 repositories {
-    mavenCentral()
+    jcenter()
 }
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.3.11'
-    compile group: 'junit', name: 'junit', version: '4.12'
+
+    // JUnit5 with legacy JUnit4 support
+    testCompileOnly 'junit:junit:4.12'
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.6.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+
 }
+
+test {
+    useJUnitPlatform()
+}
+
