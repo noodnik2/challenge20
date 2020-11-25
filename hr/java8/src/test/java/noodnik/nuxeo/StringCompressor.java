@@ -3,6 +3,8 @@ package noodnik.nuxeo;
 import org.junit.Test;
 
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -10,91 +12,82 @@ import static org.junit.Assert.assertNull;
 public class StringCompressor {
 
     @Test
-    public void nullTestCase() {
-        assertNull(Solution.getCompressedString(null));
+    public void testSinkStreamSolution() {
+        runTests(new SinkStreamSolution());
     }
 
-    @Test
-    public void emptyTestCase() {
-        assertEquals("", Solution.getCompressedString(""));
+    private void runTests(final Solution solution) {
+        assertNull("nullTestCase", solution.getCompressedString(null));
+        assertEquals("emptyTestCase", "", solution.getCompressedString(""));
+        assertEquals("compressTestCase111", "abc", solution.getCompressedString("abc"));
+        assertEquals("compressTestCase321", "3a2bc", solution.getCompressedString("aaabbc"));
+        assertEquals("compressTestCase11113", "abcde3f", solution.getCompressedString("abcdefff"));
+        assertEquals("compressTestCase3", "3a", solution.getCompressedString("aaa"));
+        assertEquals("compressTestCase14", "a4f", solution.getCompressedString("affff"));
+        assertEquals("compressTestCase12211", "a2b2aca", solution.getCompressedString("abbaaca"));
     }
 
-    @Test
-    public void compressTestCase111() {
-        assertEquals("abc", Solution.getCompressedString("abc"));
+    interface Solution {
+        String getCompressedString(String input);
     }
 
-    @Test
-    public void compressTestCase321() {
-        assertEquals("3a2bc", Solution.getCompressedString("aaabbc"));
+    static class CompressionBuffer implements Supplier<String> {
+
+        private final StringBuilder stringBuilder = new StringBuilder();
+        private final BiConsumer<Integer, Character> drain = (
+            (l, c) -> stringBuilder.append(l == 1 ? "" + c : "" + l + c)
+        );
+
+        private int runLength;
+        private Character currentChar;
+
+        public void accumulate(final char c) {
+            if (currentChar == null) {
+                runLength = 1;
+                currentChar = c;
+                return;
+            }
+            if (currentChar == c) {
+                runLength++;
+                return;
+            }
+            flush();
+        }
+
+        public void flush() {
+            if (runLength > 0) {
+                drain.accept(runLength,  currentChar);
+                runLength = 0;
+            }
+        }
+
+        public String get() {
+            flush();
+            return stringBuilder.toString();
+        }
+
     }
 
-    @Test
-    public void compressTestCase11113() {
-        assertEquals("abcde3f", Solution.getCompressedString("abcdefff"));
-    }
-    
-    @Test
-    public void compressTestCase3() {
-        assertEquals("3a", Solution.getCompressedString("aaa"));
-    }
-    
-    @Test
-    public void compressTestCase14() {
-        assertEquals("a4f", Solution.getCompressedString("affff"));
-    }
-    
-    @Test
-    public void compressTestCase12211() {
-        assertEquals("a2b2aca", Solution.getCompressedString("abbaaca"));
-    }
+    static class SinkStreamSolution implements Solution {
 
-    static class Solution {
-
-        public static String getCompressedString(String input) {
+        public String getCompressedString(final String input) {
             if (input == null) {
                 return null;
             }
-            final StringBuffer stringBuffer = new StringBuffer();
-            final CompressionSink sink = new CompressionSink(
-                (l, c) -> stringBuffer.append(l == 1 ? "" + c : "" + l + c)
+            return (
+                input
+                .chars()
+                .mapToObj(ci -> (char) ci)
+                .collect(
+                    Collector.of(
+                        CompressionBuffer::new,
+                        CompressionBuffer::accumulate,
+                        (sink1, sink2) -> sink2, // only used in single-threaded collectors like this one
+                        CompressionBuffer::get
+                    )
+                )
             );
-            for (final char c : input.toCharArray()) {
-                sink.accumulate(c);
-            }
-            sink.flush();
-            return stringBuffer.toString();
-        }
-
-        static class CompressionSink {
-
-            public CompressionSink(final BiConsumer<Integer, Character> drain) {
-                this.drain = drain;
-            }
-
-            final BiConsumer<Integer, Character> drain;
-
-            int runLength;
-            Character currentChar;
-
-            void accumulate(final char c) {
-                if (currentChar != null) {
-                    if (currentChar == c) {
-                        runLength++;
-                        return;
-                    }
-                    flush();
-                }
-                runLength = 1;
-                currentChar = c;
-            }
-
-            void flush() {
-                if (runLength > 0) {
-                    drain.accept(runLength,  currentChar);
-                    runLength = 0;
-                }
-            }
         }
     }
+
 }
