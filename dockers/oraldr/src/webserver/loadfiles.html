@@ -1,0 +1,64 @@
+<html lang="en">
+
+    <head>
+        <title>Oracle CSV File Loader</title>
+    </head>
+
+    <body>
+
+        <h1>Oracle CSV File Loader</h1>
+
+        <p>
+            Files copied into the <a href="/cgi-bin/listfiles.py?dir=inbox">Inbox</a>
+            can be processed, and the results (with the original file) are copied
+            into the <a href="/cgi-bin/listfiles.py?dir=outbox">Outbox</a>.
+        </p>
+        <hr />
+
+        <h2>Inbox</h2>
+        <p>Click on the name of a file to load:</p>
+        <ul id="inbox-list"></ul>
+        <hr />
+
+        <h2>Outbox</h2>
+        <p>Names of files in the outbox are listed here:</p>
+        <ul id="outbox-list"></ul>
+        <hr />
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+
+        <script>
+
+            function liLoadLink(loadFilename) {
+                return liString(`<a href="/cgi-bin/loadfiles.py?file=${loadFilename}">${loadFilename}</a>`)
+            }
+
+            function liString(s) {
+                return `<li>${s}</li>`
+            }
+
+            function populateFileEntries(dir, element, formatFn) {
+                $.getJSON(
+                    `/cgi-bin/listfiles.py?dir=${dir}`,
+                    function(result) {
+                        $.each(
+                            result,
+                            function(i, field) {
+                                $(element).append(formatFn(field));
+                            }
+                        );
+                    }
+                );
+            }
+
+            $(document).ready(
+                function() {
+                    populateFileEntries('inbox', '#inbox-list', liLoadLink);
+                    populateFileEntries('outbox', '#outbox-list', liString);
+                }
+            );
+
+        </script>
+
+    </body>
+</html>
