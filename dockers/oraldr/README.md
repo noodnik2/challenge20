@@ -75,13 +75,13 @@ script [load_projx_table.sql](src/scripts/load_projx_table.sql) to demonstrate t
 technique of loading the CSV file into the database.  See the [example session](#example-session)
 below.
 
-#### Use the REST Endpoint
+#### Use the HTTP RPC Endpoint
 
-You can also use the web interface's `REST` endpoint to load the file
+You can also use the web interface's HTTP RPC endpoint to load the file
 from the `inbox`; e.g.:
 
 ```
-curl 'http://localhost:8000/cgi-bin/loadfiles.py?file=projx_table.csv.gz'
+curl -X POST -d file=projx_table.csv.gz 'http://localhost:8000/cgi-bin/loadfiles.py'
 ```
 
 ### Session Termination

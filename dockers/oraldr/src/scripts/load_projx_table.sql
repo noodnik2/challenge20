@@ -5,9 +5,11 @@ set trim on
 set term on
 set timing off
 set pagesize 0
+set verify off
+set heading off
 
 ----
-prompt Invoked to load external file &1 into table &2
+prompt Invoked to load external file '&1' into table '&2'
 
 @@/home/oracle/scripts/extdirs.sql
 @@/home/oracle/scripts/procs.sql
