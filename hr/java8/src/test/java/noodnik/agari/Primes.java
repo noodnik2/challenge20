@@ -33,8 +33,8 @@ public class Primes {
     }
 
     @Test
-    public void printAllPrimesUsingSieveOfErasthones() {
-        printAllPrimes(new SieveOfErasthoesAllPrimeFinder());
+    public void printAllPrimesUsingSieveOfEratosthenes() {
+        printAllPrimes(new SieveOfEratosthenesAllPrimeFinder());
     }
 
     @Test
@@ -53,27 +53,25 @@ public class Primes {
     public void testAllPrimesFinders() {
         final AllPrimeFinder[] finders = {
             new BruteForceAllPrimeFinder(),
-            new SieveOfErasthoesAllPrimeFinder()
+            new SieveOfEratosthenesAllPrimeFinder()
         };
-        final long[] runtimes = assertAllPrimeFinderResultsAndGetRuntimes(finders);
-        for (int i = 0; i < finders.length; i++) {
-            log("finder(%s) took(%sms)", finders[i].getClass().getSimpleName(), runtimes[i]);
-        }
+        printPrimeFinderRuntimes(finders, assertAllPrimeFinderResultsAndGetRuntimes(finders));
     }
 
     @Test
     public void testIntervalPrimesFinders() {
         final IntervalPrimeFinder[] finders = {
             new BruteForceIntervalPrimeFinder(),
-            new DelegatedIntervalPrimeFinder(new SieveOfErasthoesAllPrimeFinder())
+            new DelegatedIntervalPrimeFinder(new SieveOfEratosthenesAllPrimeFinder())
         };
-        final long[] runtimes = assertIntervalPrimeFinderResultsAndGetRuntimes(finders);
-        for (int i = 0; i < finders.length; i++) {
-            log("finder(%s) took(%sms)", finders[i].getClass().getSimpleName(), runtimes[i]);
-        }
+        printPrimeFinderRuntimes(finders, assertIntervalPrimeFinderResultsAndGetRuntimes(finders));
     }
 
-    interface AllPrimeFinder {
+    interface PrimeFinder {
+        // marker interface for a prime finder
+    }
+
+    interface AllPrimeFinder extends PrimeFinder {
         /**
          * @param maxNumber maximum number to consider for primes
          * @return list of primes found less than or equal to {@code maxNumber}
@@ -81,7 +79,7 @@ public class Primes {
         List<Integer> findPrimes(int maxNumber);
     }
 
-    static class SieveOfErasthoesAllPrimeFinder implements AllPrimeFinder {
+    static class SieveOfEratosthenesAllPrimeFinder implements AllPrimeFinder {
 
         /**
          *  To find all the prime numbers less than or equal to a given integer n by Eratosthenes' method:
@@ -171,7 +169,7 @@ public class Primes {
         }
     }
 
-    interface IntervalPrimeFinder {
+    interface IntervalPrimeFinder extends PrimeFinder {
         List<Integer> findIntervalPrimes(int low, int high);
     }
 
@@ -257,6 +255,12 @@ public class Primes {
 
     private void printPrimes(String id, List<Integer> primes) {
         log("%s[%s] %s", id, primes.size(), primes);
+    }
+
+    private void printPrimeFinderRuntimes(final PrimeFinder[] finders, final long[] runtimes) {
+        for (int i = 0; i < finders.length; i++) {
+            log("finder(%s) took(%sms)", finders[i].getClass().getSimpleName(), runtimes[i]);
+        }
     }
 
 }
