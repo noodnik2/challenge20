@@ -29,7 +29,12 @@ public class Primes {
 
     @Test
     public void printAllPrimesUsingBruteForce() {
-        printAllPrimes(new BruteForceAllPrimeFinder());
+        printAllPrimes(new BruteForceAllPrimeFinder(new WikiPrimalitySinglePrimeFinder()));
+    }
+
+    @Test
+    public void printAllPrimesUsingRecursiveBruteForce() {
+        printAllPrimes(new BruteForceRecursiveAllPrimeFinder());
     }
 
     @Test
@@ -45,14 +50,15 @@ public class Primes {
     @Test
     public void printIntervalPrimesUsingDelegatedBruteForceAllFinder() {
         printIntervalPrimes(
-            new DelegatedIntervalPrimeFinder(new BruteForceAllPrimeFinder())
+            new DelegatedIntervalPrimeFinder(new BruteForceRecursiveAllPrimeFinder())
         );
     }
 
     @Test
     public void testAllPrimesFinders() {
         final AllPrimeFinder[] finders = {
-            new BruteForceAllPrimeFinder(),
+            new BruteForceAllPrimeFinder(new WikiPrimalitySinglePrimeFinder()),
+            new BruteForceRecursiveAllPrimeFinder(),
             new SieveOfEratosthenesAllPrimeFinder()
         };
         printPrimeFinderRuntimes(finders, assertAllPrimeFinderResultsAndGetRuntimes(finders));
@@ -124,12 +130,68 @@ public class Primes {
 
     }
 
-    static class BruteForceAllPrimeFinder implements AllPrimeFinder {
+    interface SinglePrimeFinder extends PrimeFinder {
+        /**
+         *  @param n number to test for being prime
+         *  @return {@code true} iff {@code n} is prime
+         */
+        boolean isPrime(int n);
+    }
+
+    static class WikiPrimalitySinglePrimeFinder implements SinglePrimeFinder {
 
         /**
-         *  Brute force "divide and conquer" approach.
+         *  @see <a href="https://en.wikipedia.org/wiki/Primality_test">Primality Test</a>
          */
+        public boolean isPrime(final int n) {
+            if (n <= 3) {
+                return n > 1;
+            }
+            if (n % 2 == 0 || n % 3 == 0) {
+                return false;
+            }
+            for (int i = 5; i * i <= n; i += 6) {
+                if (n % i == 0 || n % (i + 2) == 0) {
+                    return false;
+                }
+            }
+            return true;
+        }
 
+    }
+
+    static class BruteForceAllPrimeFinder implements AllPrimeFinder {
+
+        private final SinglePrimeFinder singlePrimeFinder;
+
+        public BruteForceAllPrimeFinder(final SinglePrimeFinder singlePrimeFinder) {
+            this.singlePrimeFinder = singlePrimeFinder;
+        }
+
+        /**
+         *  Calls the supplied {@link SinglePrimeFinder} for each number
+         *  between 1 and {@code maxNumber}, returning all which evaluate
+         *  to being prime numbers.
+         */
+        public List<Integer> findPrimes(int maxNumber) {
+            final List<Integer> primes = new ArrayList<>();
+            for (int n = 1; n <= maxNumber; n++) {
+                if (singlePrimeFinder.isPrime(n)) {
+                    primes.add(n);
+                }
+            }
+            return primes;
+        }
+
+    }
+
+    static class BruteForceRecursiveAllPrimeFinder implements AllPrimeFinder {
+
+        /**
+         *  Brute force "divide and conquer" approach.  Recursively calls self
+         *  to obtain a list of all prime values from 1 to one half of {@code maxNumber},
+         *  and uses "trial division" to check if {@code maxNumber} is prime.
+         */
         public List<Integer> findPrimes(final int maxNumber) {
 
             if (maxNumber < 2) {
@@ -170,6 +232,11 @@ public class Primes {
     }
 
     interface IntervalPrimeFinder extends PrimeFinder {
+        /**
+         *  @param low low end of range to be tested (inclusive)
+         *  @param high high end of range to be tested (inclusive)
+         *  @return list of prime numbers within the given range
+         */
         List<Integer> findIntervalPrimes(int low, int high);
     }
 
