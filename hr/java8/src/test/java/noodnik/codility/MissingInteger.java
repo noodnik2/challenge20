@@ -22,7 +22,7 @@ public class MissingInteger {
      *  A[*] are +/−10^6
      *
      */
-    static
+    public static
     class Solution {
 
         static final int MIN_VALUE = -1_000_000;
