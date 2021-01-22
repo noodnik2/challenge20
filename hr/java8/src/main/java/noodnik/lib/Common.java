@@ -60,7 +60,15 @@ public class Common {
     public static List<Long> listOf(long... testDatum) {
         return Arrays.stream(testDatum).boxed().collect(Collectors.toList());
     }
-    
+
+    public static List<Integer> listOfInts(int... testDatum) {
+        return listOf(testDatum);
+    }
+
+    public static List<Long> listOfLongs(long... testDatum) {
+        return listOf(testDatum);
+    }
+
     public static int[][] intArrayListToPrimitive(List<int[]> listOfIntArray) {
         int[][] iaa = new int[listOfIntArray.size()][];
         for (int i = 0; i < iaa.length; i++) {
@@ -71,8 +79,8 @@ public class Common {
     
     public static List<List<Integer>> intArrayArrayToLists(int[][] intArrayArray) {
         List<List<Integer>> lists = new ArrayList<>();
-        for (int i = 0; i < intArrayArray.length; i++) {
-            lists.add(listOf(intArrayArray[i]));
+        for (int[] ints : intArrayArray) {
+            lists.add(listOf(ints));
         }
         return lists;
     }
@@ -83,10 +91,6 @@ public class Common {
             .rangeClosed(1, n)
             .reduce(1, (long x, long y) -> x * y)
         );
-    }
-    
-    public static void elapsedTimeRunner(String label, Runnable r) {
-        elapsedTimeRunner(label, () -> r.run());
     }
     
     public static <T> T elapsedTimeRunner(String label, Supplier<T> r) {
