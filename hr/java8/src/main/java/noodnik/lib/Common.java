@@ -92,8 +92,18 @@ public class Common {
             .reduce(1, (long x, long y) -> x * y)
         );
     }
-    
-    public static <T> T elapsedTimeRunner(String label, Supplier<T> r) {
+
+    public static void invokeRunnableLogElapsedTime(String label, Runnable r) {
+        invokeSupplierLogElapsedTime(
+            label,
+            () -> {
+                r.run();
+                return null;
+            }
+        );
+    }
+
+    public static <T> T invokeSupplierLogElapsedTime(String label, Supplier<T> r) {
         final long startTimeMillis = System.currentTimeMillis();
         try {
             return r.get();

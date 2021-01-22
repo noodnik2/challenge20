@@ -1,7 +1,7 @@
 package noodnik.classic;
 
 import static java.lang.String.format;
-import static noodnik.lib.Common.elapsedTimeRunner;
+import static noodnik.lib.Common.invokeSupplierLogElapsedTime;
 import static noodnik.lib.Common.log;
 
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ public class UkkonenSuffixTree {
     public UkkonenSuffixTree(String chars, Consumer<String> consoleSinkFn) {
         this.consoleSinkFn = consoleSinkFn;
         this.uchars = chars;
-        uroot = elapsedTimeRunner("build", () -> build(chars));
+        uroot = invokeSupplierLogElapsedTime("build", () -> build(chars));
         log("nodes(%s)", Node.nextId);
     }
     
@@ -117,7 +117,7 @@ public class UkkonenSuffixTree {
     }
 
     public int walkTreeNr(final EdgeVisitor edgeVisitor, int left, int right) {
-        return elapsedTimeRunner("walkTreeNr", () -> walkTreeNr0(edgeVisitor, left, right));
+        return invokeSupplierLogElapsedTime("walkTreeNr", () -> walkTreeNr0(edgeVisitor, left, right));
     }
 
     private int walkTreeNr0(final EdgeVisitor edgeVisitor, int left, int right) {
