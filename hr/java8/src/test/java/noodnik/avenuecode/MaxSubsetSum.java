@@ -14,7 +14,7 @@ import static noodnik.lib.Common.listOfLongs;
 import static noodnik.lib.Common.log;
 import static org.junit.Assert.assertEquals;
 
-public class Scratchpad4 {
+public class MaxSubsetSum {
 
     @Test
     public void sampleCase1() {
@@ -144,7 +144,7 @@ public class Scratchpad4 {
      * @return sums calculated for each array[i]
      */
     public static List<Long> maxSubsetSum(List<Integer> k) {
-        return k.stream().map(Scratchpad4::sumFactors).collect(Collectors.toList());
+        return k.stream().map(MaxSubsetSum::sumFactors).collect(Collectors.toList());
     }
 
     /**
