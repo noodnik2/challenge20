@@ -1,0 +1,50 @@
+title Vending Machine - Happy Path
+
+participant Customer
+participant UserInterface
+participant Delivery
+participant Cashier
+participant Inventory
+participant Rules
+participant Backend
+
+Inventory --> UserInterface: Update
+Customer -> UserInterface: Get Available Items
+Backend -> Rules: Update
+Customer -> Cashier: Deposit or Authorize Payment
+activate Customer
+activate Cashier
+opt Credit Purchases
+Cashier -> Rules: Validate Authorization
+opt Large Purchases
+activate Rules
+Rules -> Backend: Preauthorize
+deactivate Rules
+end
+end
+Cashier -> Cashier: Update Credit
+Cashier --> UserInterface: Available Credit
+deactivate Cashier
+Customer -> UserInterface: Purchase Item
+activate UserInterface
+UserInterface -> Rules: Purchase
+deactivate UserInterface
+activate Rules
+Rules -> Inventory: Verify & Hold
+activate Inventory
+Rules -> Cashier: Verify & Hold
+activate Cashier
+Rules -> Cashier: Debit
+opt Credit Purchases
+Cashier -> Backend: Complete Payment
+end
+deactivate Cashier
+Rules -> Delivery: Deliver
+activate Delivery
+Rules -> Inventory: Decrement
+deactivate Inventory
+deactivate Rules
+Customer -> Delivery: Retrieve
+Delivery --> Rules: Acknowledge Delivery
+deactivate Delivery
+deactivate Customer
