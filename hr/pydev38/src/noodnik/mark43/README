@@ -16,7 +16,7 @@ Instructions For Running
 
 The standard run procedure requires Python 3; e.g.:
 
-    $ python run_tests "python c3p_runner.py"
+    $ python3 run_tests "python c3p_runner.py"
 
 The program was developed with Python version 3.8.2, though it is believed that it
 should run properly on any version of Python 3.
@@ -24,8 +24,8 @@ should run properly on any version of Python 3.
 The unit tests are a helpful starting place for understanding or diagnosing
 problem(s) which may arise, and can be run with:
 
-    $ python c3p_scorer_tests.py
-    $ python c3p_grader_tests.py
+    $ python3 c3p_scorer_tests.py
+    $ python3 c3p_grader_tests.py
 
 
 Design
