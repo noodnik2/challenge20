@@ -1,0 +1,45 @@
+Submission for Mark43 Coding Challenge
+======================================
+
+Source Code Files
+-----------------
+
+- c3p_runner.py
+- c3p_grader.py
+- c3p_grader_tests.py
+- c3p_scorer.py
+- c3p_scorer_tests.py
+
+
+Instructions For Running
+------------------------
+
+The standard run procedure requires Python 3; e.g.:
+
+    $ python run_tests "python c3p_runner.py"
+
+The program was developed with Python version 3.8.2, though it is believed that it
+should run properly on any version of Python 3.
+
+The unit tests are a helpful starting place for understanding or diagnosing
+problem(s) which may arise, and can be run with:
+
+    $ python c3p_scorer_tests.py
+    $ python c3p_grader_tests.py
+
+
+Design
+------
+
+The problem seemed pretty straightforward, given the detailed description provided
+(in README.md) of the scoring and grading criteria.  The implementation was likewise
+broken into modules for scoring and grading, in files 'c3p_scorer.py' and 'c3p_grader.py'.
+Unit tests for each module were added to help establish confidence in the correctness
+of expected behavior for additional cases.
+
+- Dependency Graph:
+
+    test files <= run_tests => c3p_runner => c3p_grader => c3p_scorer
+
+
+End of README
