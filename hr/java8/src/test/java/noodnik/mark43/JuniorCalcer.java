@@ -84,8 +84,6 @@ public class JuniorCalcer {
         Map<String, Integer> fullNamePopulation = new HashMap<>();
         String mostJuniorsFamily;
         int mostJuniorsFamilCount;
-        // familyName => members
-        // fullName => f
 
         public void addPerson(Person person) {
             String fullName = person.lastName + person.firstName;
